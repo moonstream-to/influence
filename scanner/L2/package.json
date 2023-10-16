@@ -1,0 +1,29 @@
+{
+  "name": "scanner-l2",
+  "version": "0.0.1",
+  "description": "Scan Influenceth data on L2 chain Starknet",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/*",
+    "format": "prettier --write src/*"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "starknet": "^5.19.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.6",
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
+    "@typescript-eslint/parser": "^6.7.5",
+    "eslint": "^8.51.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  }
+}

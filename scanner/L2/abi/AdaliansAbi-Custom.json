@@ -1,0 +1,151 @@
+[
+    {
+        "type": "function",
+        "name": "",
+        "inputs": [
+            {
+                "name": "",
+                "type": "core::starknet::contract_address::ContractAddress"
+            }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+    },
+    {
+        "type": "event",
+        "name": "CrewmatePurchased",
+        "members": [
+            {
+                "name": "crewmate.label",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "crewmate.id",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "caller",
+                "type": "core::starknet::contract_address::ContractAddress",
+                "kind": "data"
+            }
+        ]
+    },
+    {
+        "type": "event",
+        "name": "CrewmateRecruitedV1",
+        "members": [
+            {
+                "name": "crewmate.label",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "crewmate.id",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "collection",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "class",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "title",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "impactful",
+                "type": "core::array::Span::<core::integer::u64>",
+                "kind": "data"
+            },
+            {
+                "name": "cosmetic",
+                "type": "core::array::Span::<core::integer::u64>",
+                "kind": "data"
+            },
+            {
+                "name": "gender",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "body",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "face",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "hair",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "hair_color",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "clothes",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "head",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "item",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "name",
+                "type": "core::felt252",
+                "kind": "data"
+            },
+            {
+                "name": "station.label",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "station.id",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "composition",
+                "type": "core::array::Span::<core::integer::u64>",
+                "kind": "data"
+            },
+            {
+                "name": "caller_crew.label",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "caller_crew.id",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "caller",
+                "type": "core::starknet::contract_address::ContractAddress",
+                "kind": "data"
+            }
+        ]
+    }
+]
