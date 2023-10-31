@@ -50,7 +50,6 @@ async function updateLeaderboardScore(
 ) {
     const url = `https://engineapi.moonstream.to/leaderboard/${leaderboard_id}/scores?overwrite=true&normalize_addresses=false`;
 
-    console.log("response", scores);
 
     const response = await fetch(url, {
         method: "PUT",
@@ -277,8 +276,6 @@ const find_block_deployment_of_contract = async (address: string) => {
 };
 
 const ContractExistsAtBlock = async (address: string, blockNumber: number) => {
-    console.log("blockNumber", blockNumber);
-    console.log("address", address);
 
     let classHash;
 
@@ -300,6 +297,9 @@ const add_to_file_with_deduplication = (events, output) => {
         fs.writeFileSync(output, JSON.stringify(events));
         return;
     }
+
+
+    console.log("events", events.length);
 
     const file = fs.readFileSync(output, "utf8");
 
@@ -392,7 +392,7 @@ events
                 );
                 const endBlock = Math.min(
                     (await providerRPC.getBlock("latest")).block_number -
-                        confirmations,
+                    confirmations,
                     startBlock + maxBlocksBatch,
                 );
 
@@ -410,7 +410,6 @@ events
                 logger.info(
                     `Crawling events from ${startBlock} to ${endBlock}`,
                 );
-                console.log("eventCrawlJobs", eventCrawlJobs);
 
                 let chunkNum = 1;
                 let events = [];
@@ -438,7 +437,7 @@ events
 
                     console.log("eventsRes", eventsRes.events.length);
 
-                    eventsRes.events.forEach(async (i) => {
+                    for (let i of eventsRes.events) {
                         let block_timestamp;
                         let block;
 
@@ -472,9 +471,9 @@ events
                             i["block_hash"],
                             record,
                         );
-                        parsedData["block_timestamp"] = block.timestamp;
+                        parsedData["block_timestamp"] = block_timestamp;
                         events.push(parsedData);
-                    });
+                    }
 
                     const nbEvents = eventsRes.events.length;
                     continuationToken = eventsRes.continuation_token;
@@ -493,16 +492,10 @@ events
                     if (!continuationToken) {
                         keepGoing = false;
                     }
+                    logger.info(
+                        `Crawled ${events.length} events from ${startBlock} to ${endBlock}.`
+                    );
                 }
-                logger.info(
-                    `Crawled ${allEvents.events.length} events from ${startBlock} to ${endBlock}.`,
-                );
-                logger.info(
-                    `Crawling function calls from ${startBlock} to ${endBlock}`,
-                );
-                logger.info(
-                    `Crawled ${allEvents.events.length} function calls from ${startBlock} to ${endBlock}.`,
-                );
                 startBlock = endBlock + 1;
                 failedCount = 0;
             } catch (e) {
