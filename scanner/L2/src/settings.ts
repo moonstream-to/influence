@@ -14,3 +14,7 @@ export const WEB3_INFURA_URL = process.env.WEB3_INFURA_URL;
 if (!WEB3_INFURA_URL) {
     throw new Error("Unable to read env variable WEB3_INFURA_URL");
 }
+
+export const MOONSTREAM_LEADERBOARD_TOKEN = process.env.MOONSTREAM_LEADERBOARD_TOKEN;
+
+export const BLOCKS_PER_FILE = 10000;
