@@ -60,8 +60,6 @@ export const CrewmateAttrMap = {
     },
 };
 
-
-
 export type LeaderBoard = {
     address: string;
     score: number;
@@ -73,7 +71,7 @@ export type LeaderBoardPointsData = {
     points_data: object;
 };
 
-// dict of {address: {score: number, points_data: object}} 
+// dict of {address: {score: number, points_data: object}}
 
 export type LeaderBoardDict = {
     [address: string]: LeaderBoardPointsData;

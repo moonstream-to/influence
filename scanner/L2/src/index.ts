@@ -3,10 +3,10 @@ import { Command } from "commander";
 import fs from "fs";
 
 import {
-    WEB3_INFURA_URL,
-    STARKNET_ADALIANS_CONTRACT_ADDRESS,
+    MOONSTREAM_STARKNET_URI,
+    STARKNET_INFLUENCE_ADALIANS_CONTRACT_ADDRESS,
     STARKNET_ADALIANS_ABI_PATH,
-    MOONSTREAM_LEADERBOARD_TOKEN,
+    MOONSTREAM_LEADERBOARD_INFLUENCE_USER_ACCESS_TOKEN,
 } from "./settings";
 import {
     CrewmatePurchased,
@@ -17,8 +17,7 @@ import {
 } from "./data";
 import startCrawling from "./blocks";
 
-const providerRPC = new RpcProvider({ nodeUrl: WEB3_INFURA_URL });
-
+const providerRPC = new RpcProvider({ nodeUrl: MOONSTREAM_STARKNET_URI });
 
 // InitializeContract create contract instance with specified address and ABI
 const InitializeContract = (address: string, abiPath: string): Contract => {
@@ -29,8 +28,6 @@ const InitializeContract = (address: string, abiPath: string): Contract => {
 };
 
 const program = new Command();
-
-
 
 program.version("0.0.1");
 
@@ -47,9 +44,10 @@ const NumberToAsciiString = (num) => {
     return result;
 };
 
-
-
-async function updateLeaderboardScore(leaderboard_id: string, scores: LeaderBoard[]) {
+async function updateLeaderboardScore(
+    leaderboard_id: string,
+    scores: LeaderBoard[],
+) {
     const url = `https://engineapi.moonstream.to/leaderboard/${leaderboard_id}/scores?overwrite=true&normalize_addresses=false`;
 
     console.log("response", scores);
@@ -57,10 +55,10 @@ async function updateLeaderboardScore(leaderboard_id: string, scores: LeaderBoar
     const response = await fetch(url, {
         method: "PUT",
         headers: {
-            "Authorization": `Moonstream ${MOONSTREAM_LEADERBOARD_TOKEN}`,
-            "Content-Type": "application/json"
+            Authorization: `Moonstream ${MOONSTREAM_LEADERBOARD_INFLUENCE_USER_ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
         },
-        body: JSON.stringify(scores)
+        body: JSON.stringify(scores),
     });
 
     if (!response.ok) {
@@ -69,9 +67,10 @@ async function updateLeaderboardScore(leaderboard_id: string, scores: LeaderBoar
     }
 
     console.log("Leaderboard updated");
-    console.log(`Look at it here: https://moonstream.to/leaderboards/?leaderboard_id=${leaderboard_id}`);
+    console.log(
+        `Look at it here: https://moonstream.to/leaderboards/?leaderboard_id=${leaderboard_id}`,
+    );
 }
-
 
 const EventParser = (
     eventType: string,
@@ -159,23 +158,24 @@ const blocks = program
     .command("blocks")
     .description("Fetch blocks from Starknet");
 
-
-
-blocks.command("crawl").option(
-    "--from-block <block_number>",
-    "Parse from specified block number to latest",
-).action(async (cmd) => {
-    console.log("cmd.fromBlock", cmd.fromBlock);
-    await startCrawling(providerRPC, cmd.fromBlock);
-});
-
+blocks
+    .command("crawl")
+    .option(
+        "--from-block <block_number>",
+        "Parse from specified block number to latest",
+    )
+    .action(async (cmd) => {
+        console.log("cmd.fromBlock", cmd.fromBlock);
+        await startCrawling(providerRPC, cmd.fromBlock);
+    });
 
 const leaderboard = program
     .command("leaderboard")
-    .description("CLI for Moonstream leaderboard")
+    .description("CLI for Moonstream leaderboard");
 
-
-leaderboard.command("generate").option("--input <path>", "Path to input file with data")
+leaderboard
+    .command("generate")
+    .option("--input <path>", "Path to input file with data")
     .option("--leaderboard-id <id>", "Leaderboard ID")
     .option("--event-filter <name>", "Filter events by name")
     .action(async (cmd) => {
@@ -190,25 +190,20 @@ leaderboard.command("generate").option("--input <path>", "Path to input file wit
             throw new Error(`Unsupported event ${cmd.eventFilter}`);
         }
 
-
-        if (!MOONSTREAM_LEADERBOARD_TOKEN) {
-            throw new Error("Unable to read env variable MOONSTREAM_LEADERBOARD_TOKEN");
+        if (!MOONSTREAM_LEADERBOARD_INFLUENCE_USER_ACCESS_TOKEN) {
+            throw new Error(
+                "Unable to read env variable MOONSTREAM_LEADERBOARD_INFLUENCE_USER_ACCESS_TOKEN",
+            );
         }
-
 
         const dataJson = fs.readFileSync(cmd.input, "utf8");
         const data = JSON.parse(dataJson);
-
-
 
         let leaderboardData: LeaderBoard[] = [];
         let positions_data: LeaderBoardDict = {};
         data.forEach((i) => {
             if (cmd.eventFilter == "CrewmateRecruitedV1") {
-
-
                 if ("class" in i) {
-
                     // check if caller is already in positions_data
                     let character_class = CrewmateAttrMap["class"][i["class"]];
                     if (character_class in positions_data) {
@@ -216,16 +211,12 @@ leaderboard.command("generate").option("--input <path>", "Path to input file wit
                     } else {
                         positions_data[character_class] = {
                             score: 1,
-                            points_data: {
-                            },
+                            points_data: {},
                         };
                     }
                 }
-
             } else if (cmd.eventFilter == "CrewmatePurchased") {
-
                 if (!("class" in i)) {
-
                     // check if caller is already in positions_data
                     let caller = i["caller"];
 
@@ -234,13 +225,11 @@ leaderboard.command("generate").option("--input <path>", "Path to input file wit
                     } else {
                         positions_data[caller] = {
                             score: 1,
-                            points_data: {
-                            },
+                            points_data: {},
                         };
                     }
                 }
             }
-
         });
 
         // transform positions_data to leaderboardData
@@ -253,16 +242,10 @@ leaderboard.command("generate").option("--input <path>", "Path to input file wit
             });
         });
 
-
         await updateLeaderboardScore(cmd.leaderboardId, leaderboardData);
-
-
     });
 
-
-
 const AVAILABLE_ADALIANS_EVENTS = ["CrewmatePurchased", "CrewmateRecruitedV1"];
-
 
 const find_block_deployment_of_contract = async (address: string) => {
     let maxBlock = (await providerRPC.getBlock("latest")).block_number;
@@ -277,7 +260,7 @@ const find_block_deployment_of_contract = async (address: string) => {
     isDeployed[maxBlock] = isDeployedAtBlock;
     isDeployed[minBlock] = await ContractExistsAtBlock(address, minBlock);
     isDeployed[midBlock] = await ContractExistsAtBlock(address, midBlock);
-    while ((maxBlock - minBlock) >= 2) {
+    while (maxBlock - minBlock >= 2) {
         if (!isDeployed[minBlock] && !isDeployed[midBlock]) {
             minBlock = midBlock;
         } else {
@@ -291,7 +274,7 @@ const find_block_deployment_of_contract = async (address: string) => {
         return minBlock;
     }
     return maxBlock;
-}
+};
 
 const ContractExistsAtBlock = async (address: string, blockNumber: number) => {
     console.log("blockNumber", blockNumber);
@@ -308,11 +291,9 @@ const ContractExistsAtBlock = async (address: string, blockNumber: number) => {
         return false;
     }
     return true;
-}
-
+};
 
 const add_to_file_with_deduplication = (events, output) => {
-
     // check if file exists
 
     if (!fs.existsSync(output)) {
@@ -343,7 +324,10 @@ const add_to_file_with_deduplication = (events, output) => {
         if (fileEventsDict[event.block_number] === undefined) {
             // add event to file
             fileEvents.push(event);
-        } else if (fileEventsDict[event.block_number][event.transaction_hash] === undefined) {
+        } else if (
+            fileEventsDict[event.block_number][event.transaction_hash] ===
+            undefined
+        ) {
             // add event to file
             fileEvents.push(event);
         } else {
@@ -352,18 +336,20 @@ const add_to_file_with_deduplication = (events, output) => {
     });
 
     fs.writeFileSync(output, JSON.stringify(fileEvents));
-}
+};
 
-
-
-events.command("watch")
+events
+    .command("watch")
     .option("--output <path>", "Path to output file")
     .action(async (cmd) => {
-        if (!(cmd.output)) {
+        if (!cmd.output) {
             throw new Error("Output file should be specified");
         }
 
-        const adaliansContract = InitializeContract(STARKNET_ADALIANS_CONTRACT_ADDRESS, STARKNET_ADALIANS_ABI_PATH);
+        const adaliansContract = InitializeContract(
+            STARKNET_INFLUENCE_ADALIANS_CONTRACT_ADDRESS,
+            STARKNET_ADALIANS_ABI_PATH,
+        );
         const nameHash = num.toHex(hash.starknetKeccak("CrewmatePurchased"));
         const nameHash2 = num.toHex(hash.starknetKeccak("CrewmateRecruitedV1"));
         const eventCrawlJobs = [
@@ -382,13 +368,17 @@ events.command("watch")
         const eventCrawlJobsHashes = eventCrawlJobs.map((i) => i.keys[0]);
 
         const functionCallCrawlJobs = [];
-        var startBlock = await find_block_deployment_of_contract(STARKNET_ADALIANS_CONTRACT_ADDRESS);
+        var startBlock = await find_block_deployment_of_contract(
+            STARKNET_INFLUENCE_ADALIANS_CONTRACT_ADDRESS,
+        );
         const maxBlocksBatch = 10000;
         const minBlocksBatch = 1;
         const confirmations = 60;
         const minSleepTime = 0.1;
         const logger = console;
-        logger.info(`Starting continuous event crawler start_block=${startBlock}`);
+        logger.info(
+            `Starting continuous event crawler start_block=${startBlock}`,
+        );
         const blocksCache = {};
 
         const latestBlock = await providerRPC.getBlock("latest");
@@ -397,16 +387,29 @@ events.command("watch")
         let failedCount = 0;
         while (true) {
             try {
-                await new Promise((r) => setTimeout(r, currentSleepTime * 1000));
-                const endBlock = Math.min((await providerRPC.getBlock("latest")).block_number - confirmations, startBlock + maxBlocksBatch);
+                await new Promise((r) =>
+                    setTimeout(r, currentSleepTime * 1000),
+                );
+                const endBlock = Math.min(
+                    (await providerRPC.getBlock("latest")).block_number -
+                        confirmations,
+                    startBlock + maxBlocksBatch,
+                );
 
                 if (startBlock + minBlocksBatch > endBlock) {
                     currentSleepTime += 0.1;
-                    logger.info(`Sleeping for ${currentSleepTime} seconds because of low block count`);
+                    logger.info(
+                        `Sleeping for ${currentSleepTime} seconds because of low block count`,
+                    );
                     continue;
                 }
-                currentSleepTime = Math.max(minSleepTime, currentSleepTime - 0.1);
-                logger.info(`Crawling events from ${startBlock} to ${endBlock}`);
+                currentSleepTime = Math.max(
+                    minSleepTime,
+                    currentSleepTime - 0.1,
+                );
+                logger.info(
+                    `Crawling events from ${startBlock} to ${endBlock}`,
+                );
                 console.log("eventCrawlJobs", eventCrawlJobs);
 
                 let chunkNum = 1;
@@ -421,22 +424,21 @@ events.command("watch")
                     console.log("continuationToken", continuationToken);
                     const eventsRes = await providerRPC.getEvents({
                         from_block: {
-                            block_number: startBlock
+                            block_number: startBlock,
                         },
                         to_block: {
-                            block_number: endBlock
+                            block_number: endBlock,
                         },
-                        address: STARKNET_ADALIANS_CONTRACT_ADDRESS,
+                        address: STARKNET_INFLUENCE_ADALIANS_CONTRACT_ADDRESS,
                         // keys [[num.toHex(hash.starknetKeccak("EventPanic")), "0x8"]] as example
                         keys: [eventCrawlJobsHashes],
                         chunk_size: 1000,
-                        continuation_token: continuationToken
+                        continuation_token: continuationToken,
                     });
 
                     console.log("eventsRes", eventsRes.events.length);
 
                     eventsRes.events.forEach(async (i) => {
-
                         let block_timestamp;
                         let block;
 
@@ -444,12 +446,12 @@ events.command("watch")
                         if (i["block_number"] in blocksCache) {
                             block_timestamp = blocksCache[i["block_number"]];
                         } else {
-
-                            block = await providerRPC.getBlock(i["block_number"]);
+                            block = await providerRPC.getBlock(
+                                i["block_number"],
+                            );
                             block_timestamp = block.timestamp;
                             blocksCache[i["block_number"]] = block_timestamp;
                         }
-
 
                         // Method .parseEvents requires different structure then from .getEvents
                         const parsedEvent = adaliansContract.parseEvents({
@@ -461,36 +463,49 @@ events.command("watch")
                             transaction_hash: "",
                         });
 
-
                         const name = Object.keys(parsedEvent[0])[0];
                         const record = parsedEvent[0][name];
-                        const parsedData = EventParser(name, i["block_number"], i["transaction_hash"], i["block_hash"], record);
-                        parsedData["block_timestamp"] = block.timestamp
+                        const parsedData = EventParser(
+                            name,
+                            i["block_number"],
+                            i["transaction_hash"],
+                            i["block_hash"],
+                            record,
+                        );
+                        parsedData["block_timestamp"] = block.timestamp;
                         events.push(parsedData);
                     });
 
                     const nbEvents = eventsRes.events.length;
                     continuationToken = eventsRes.continuation_token;
-                    console.log("chunk nb =", chunkNum, ".", nbEvents, "events crawled.");
+                    console.log(
+                        "chunk nb =",
+                        chunkNum,
+                        ".",
+                        nbEvents,
+                        "events crawled.",
+                    );
                     console.log("continuation_token =", continuationToken);
                     chunkNum++;
-
 
                     add_to_file_with_deduplication(events, cmd.output);
 
                     if (!continuationToken) {
                         keepGoing = false;
                     }
-
-
                 }
-                logger.info(`Crawled ${allEvents.events.length} events from ${startBlock} to ${endBlock}.`);
-                logger.info(`Crawling function calls from ${startBlock} to ${endBlock}`);
-                logger.info(`Crawled ${allEvents.events.length} function calls from ${startBlock} to ${endBlock}.`);
+                logger.info(
+                    `Crawled ${allEvents.events.length} events from ${startBlock} to ${endBlock}.`,
+                );
+                logger.info(
+                    `Crawling function calls from ${startBlock} to ${endBlock}`,
+                );
+                logger.info(
+                    `Crawled ${allEvents.events.length} function calls from ${startBlock} to ${endBlock}.`,
+                );
                 startBlock = endBlock + 1;
                 failedCount = 0;
-            }
-            catch (e) {
+            } catch (e) {
                 logger.error(`Internal error: ${e}`);
                 logger.error(e);
                 failedCount += 1;
@@ -501,8 +516,6 @@ events.command("watch")
             }
         }
     });
-
-
 
 events
     .command("standalone")
@@ -529,7 +542,7 @@ events
         txReceipt.events = filteredEvents;
 
         const adaliansContract = InitializeContract(
-            STARKNET_ADALIANS_CONTRACT_ADDRESS,
+            STARKNET_INFLUENCE_ADALIANS_CONTRACT_ADDRESS,
             STARKNET_ADALIANS_ABI_PATH,
         );
         const parsedEvents = adaliansContract.parseEvents(txReceipt);
@@ -566,7 +579,7 @@ events
         }
 
         const adaliansContract = InitializeContract(
-            STARKNET_ADALIANS_CONTRACT_ADDRESS,
+            STARKNET_INFLUENCE_ADALIANS_CONTRACT_ADDRESS,
             STARKNET_ADALIANS_ABI_PATH,
         );
 
@@ -582,7 +595,7 @@ events
         let checkBlockNum: number = fromBlock;
         while (true) {
             const eventsList = await providerRPC.getEvents({
-                address: STARKNET_ADALIANS_CONTRACT_ADDRESS,
+                address: STARKNET_INFLUENCE_ADALIANS_CONTRACT_ADDRESS,
                 from_block: { block_number: fromBlock },
                 to_block: { block_number: latestBlock.block_number },
                 keys: [[nameHash]],

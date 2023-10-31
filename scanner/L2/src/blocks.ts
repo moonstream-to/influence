@@ -1,24 +1,24 @@
-
-
 import { Contract, num, hash, RpcProvider } from "starknet";
 import { Command } from "commander";
 import fs from "fs";
 
 import {
-    WEB3_INFURA_URL,
-    STARKNET_ADALIANS_CONTRACT_ADDRESS,
+    MOONSTREAM_STARKNET_URI,
+    STARKNET_INFLUENCE_ADALIANS_CONTRACT_ADDRESS,
     STARKNET_ADALIANS_ABI_PATH,
-    BLOCKS_PER_FILE
+    BLOCKS_PER_FILE,
 } from "./settings";
 import {
     CrewmatePurchased,
     CrewmateRecruitedV1,
     CrewmateAttrMap,
 } from "./data";
-import path from 'path';
+import path from "path";
 
-
-async function fetchAndWriteBlock(provider: RpcProvider, blockNumber: number): Promise<void> {
+async function fetchAndWriteBlock(
+    provider: RpcProvider,
+    blockNumber: number,
+): Promise<void> {
     try {
         const block = await provider.getBlock(blockNumber);
         if (!block) {
@@ -27,7 +27,7 @@ async function fetchAndWriteBlock(provider: RpcProvider, blockNumber: number): P
         }
 
         const dir = Math.floor(blockNumber / BLOCKS_PER_FILE);
-        const dirPath = path.join(__dirname, 'blocks', dir.toString());
+        const dirPath = path.join(__dirname, "blocks", dir.toString());
 
         console.log(`Fetching block #${blockNumber}`);
         console.log(`Writing block #${blockNumber} to ${dirPath}`);
@@ -40,17 +40,17 @@ async function fetchAndWriteBlock(provider: RpcProvider, blockNumber: number): P
         fs.writeFileSync(filePath, JSON.stringify(block, null, 2));
         console.log(`Block #${blockNumber} written to ${filePath}`);
     } catch (error) {
-        console.error(`Error fetching or writing block #${blockNumber}: ${error}`);
+        console.error(
+            `Error fetching or writing block #${blockNumber}: ${error}`,
+        );
     }
 }
-
 
 async function checkLatestBlockInFiles(): Promise<number | undefined> {
     let latestBlockNumber: number | undefined = undefined;
 
-    const blocksDir = path.join(__dirname, 'blocks');
+    const blocksDir = path.join(__dirname, "blocks");
     console.log(`Checking latest block in ${blocksDir}`);
-
 
     // check if blocks directory exists
     if (!fs.existsSync(blocksDir)) {
@@ -83,8 +83,11 @@ async function checkLatestBlockInFiles(): Promise<number | undefined> {
                 continue;
             }
 
-            const blockNumber = parseInt(dirFile.split('.')[0]);
-            if (latestBlockNumber === undefined || blockNumber > latestBlockNumber) {
+            const blockNumber = parseInt(dirFile.split(".")[0]);
+            if (
+                latestBlockNumber === undefined ||
+                blockNumber > latestBlockNumber
+            ) {
                 latestBlockNumber = blockNumber;
             }
         }
@@ -93,8 +96,10 @@ async function checkLatestBlockInFiles(): Promise<number | undefined> {
     return latestBlockNumber;
 }
 
-
-async function startCrawling(provider: RpcProvider, startBlockNumber: number | undefined): Promise<void> {
+async function startCrawling(
+    provider: RpcProvider,
+    startBlockNumber: number | undefined,
+): Promise<void> {
     let lastBlockNumber = startBlockNumber;
 
     if (!lastBlockNumber || Number.isNaN(lastBlockNumber)) {
@@ -105,30 +110,32 @@ async function startCrawling(provider: RpcProvider, startBlockNumber: number | u
 
     const currentBlockNumber = (await provider.getBlock("latest")).block_number;
 
-
     await checkLatestBlockInFiles().then((latestBlockNumber) => {
-        if (latestBlockNumber !== undefined && latestBlockNumber > lastBlockNumber) {
+        if (
+            latestBlockNumber !== undefined &&
+            latestBlockNumber > lastBlockNumber
+        ) {
             lastBlockNumber = latestBlockNumber;
         }
     });
 
     if (!lastBlockNumber || Number.isNaN(lastBlockNumber)) {
-
         lastBlockNumber = 0;
     }
 
     while (true) {
-
-
-
-        console.log(`Crawling from block #${lastBlockNumber + 1} to block #${currentBlockNumber}`);
+        console.log(
+            `Crawling from block #${
+                lastBlockNumber + 1
+            } to block #${currentBlockNumber}`,
+        );
 
         for (let i = lastBlockNumber + 1; i <= currentBlockNumber; i++) {
             await fetchAndWriteBlock(provider, i);
             lastBlockNumber = i;
         }
 
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
     }
 }
 
