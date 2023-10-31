@@ -47,3 +47,28 @@ node dist/index.js analytics occurrences \
     --input data/parsed-CrewmateRecruitedV1.json \
     --output data/CrewmateRecruitedV1-occurrences.json
 ```
+
+## Run crawler
+
+Crawl events:
+
+```bash
+node dist/index.js events watch --output ./events_storage.json
+```
+
+_notes_: hardcoded events: `CrewmatePurchased`, `CrewmateRecruitedV1`
+
+Set environment variable for Moonstream leaderboard:
+
+```bash
+export INFLUENCE_ADALIANS_PURCHASED_LEADERBOARD_ID=""
+```
+
+Generate leaderboards by Purchased event:
+
+```bash
+node dist/index.js leaderboard generate \
+    --input ./events_storage.json \
+    --leaderboard-id "${INFLUENCE_ADALIANS_PURCHASED_LEADERBOARD_ID}" \
+    --event-filter CrewmatePurchased
+```

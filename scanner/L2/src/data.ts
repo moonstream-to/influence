@@ -5,6 +5,8 @@ type Cremate = {
 
 export type CrewmatePurchased = {
     block_number: number | undefined;
+    block_hash: string | undefined;
+    block_timestamp: number | undefined;
     transaction_hash: string | undefined;
 
     crewmate: Cremate;
@@ -23,6 +25,8 @@ type CallerCrew = {
 
 export type CrewmateRecruitedV1 = {
     block_number: number | undefined;
+    block_timestamp: number | undefined;
+    block_hash: string | undefined;
     transaction_hash: string | undefined;
 
     crewmate: Cremate;
@@ -54,4 +58,21 @@ export const CrewmateAttrMap = {
         "4": "merchant",
         "5": "scientist",
     },
+};
+
+export type LeaderBoard = {
+    address: string;
+    score: number;
+    points_data: object;
+};
+
+export type LeaderBoardPointsData = {
+    score: number;
+    points_data: object;
+};
+
+// dict of {address: {score: number, points_data: object}}
+
+export type LeaderBoardDict = {
+    [address: string]: LeaderBoardPointsData;
 };
